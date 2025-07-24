@@ -1,0 +1,5 @@
+- name: Install ElasticSearch on Ubuntu and CentOS
+  hosts: all
+  become: true
+  roles:
+    - elasticsearch

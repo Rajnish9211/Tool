@@ -1,0 +1,6 @@
+elasticsearch_version: "7.17.9"
+elasticsearch_cluster_name: "my-cluster"
+elasticsearch_node_name: "{{ inventory_hostname }}"
+elasticsearch_network_host: "0.0.0.0"
+elasticsearch_http_port: 9200
+elasticsearch_discovery_type: "single-node"

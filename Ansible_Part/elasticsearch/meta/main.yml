@@ -1,0 +1,11 @@
+galaxy_info:
+  author: your_name
+  description: Install and configure Elasticsearch
+  min_ansible_version: 2.9
+  platforms:
+    - name: EL
+      versions:
+        - 7
+    - name: Ubuntu
+      versions:
+        - focal

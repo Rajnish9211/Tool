@@ -1,0 +1,52 @@
+---
+- name: Install Java on CentOS using raw
+  become: true
+  ansible.builtin.raw: sudo yum install -y java-1.8.0-openjdk
+  when: ansible_os_family == "RedHat"
+
+- name: Install Java on Ubuntu
+  become: true
+  apt:
+    name: openjdk-11-jdk
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Download Elasticsearch package
+  become: true
+  get_url:
+    url: "{{ elasticsearch_package_url_centos if ansible_os_family == 'RedHat' else elasticsearch_package_url_ubuntu }}"
+    dest: "/tmp/elasticsearch.{{ 'rpm' if ansible_os_family == 'RedHat' else 'deb' }}"
+
+- name: Install Elasticsearch
+  become: true
+  ansible.builtin.command: >
+    {{ 'rpm -ivh /tmp/elasticsearch.rpm' if ansible_os_family == 'RedHat' else 'dpkg -i /tmp/elasticsearch.deb' }}
+  args:
+    creates: /etc/elasticsearch/elasticsearch.yml
+    
+- name: Ensure Elasticsearch data directory exists
+  file:
+    path: /usr/share/elasticsearch/data
+    state: directory
+    owner: elasticsearch
+    group: elasticsearch
+    mode: '0755'
+  become: true
+
+- name: Template Elasticsearch configuration
+  become: true
+  template:
+    src: elasticsearch.yml.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+    owner: root
+    group: elasticsearch
+    mode: '0640'
+  notify: restart elasticsearch
+
+- name: Restart Elasticsearch service
+  become: true
+  systemd:
+    name: elasticsearch
+    state: restarted
+    enabled: true
+
