@@ -1,0 +1,48 @@
+- name: Update APT cache
+  apt:
+    update_cache: yes
+  become: true
+
+- name: Install Java on Ubuntu
+  apt:
+    name: openjdk-17-jdk
+    state: present
+  become: true
+
+- name: Download Elasticsearch package for Ubuntu
+  get_url:
+    url: "{{ elasticsearch_package_url_ubuntu }}"
+    dest: "/tmp/elasticsearch.deb"
+  become: true
+
+- name: Install Elasticsearch on Ubuntu
+  ansible.builtin.command: dpkg -i /tmp/elasticsearch.deb
+  args:
+    creates: /etc/elasticsearch/elasticsearch.yml
+  become: true
+
+- name: Ensure Elasticsearch data directory exists
+  file:
+    path: /usr/share/elasticsearch/data
+    state: directory
+    owner: elasticsearch
+    group: elasticsearch
+    mode: '0755'
+  become: true
+
+- name: Template Elasticsearch configuration
+  template:
+    src: elasticsearch.yml.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+    owner: root
+    group: elasticsearch
+    mode: '0640'
+  notify: restart elasticsearch
+  become: true
+
+- name: Restart Elasticsearch service
+  systemd:
+    name: elasticsearch
+    state: restarted
+    enabled: true
+  become: true
